@@ -9,15 +9,24 @@ struct Frame {
     std::vector<unsigned char> pixelBytes;
 };
 
-struct FrameContext {
+class FrameContext
+{
+public:
+    FrameContext() = default;
+    FrameContext(const FrameContext&) = delete; //disable copy initialization
+    FrameContext& operator=(const FrameContext&) = delete; //disable copy assignment
     HWND window{};
     HDC windowDc{};
     HDC memoryDc{};
     HBITMAP windowBitmap{};
-    BITMAPINFO bitmapInfo{};
 
     int width{};
     int height{};
+
+    bool initialize(HWND targetWindow);
+    void cleanup();
+
+    ~FrameContext();
 };
 
 void clip(HWND window);
@@ -29,13 +38,11 @@ void save_bitmap(
     const std::vector<unsigned char>& pixelBytes,
     int frameNum
 );
-
+int run();
 bool get_window_dc(HDC& windowDc, HWND window);
 bool get_memory_dc(HDC& memoryDc, HDC screenDc);
 bool get_window_dimensions(HWND window, int& width, int& height);
 bool get_window_bitmap(HBITMAP& windowBitmap, HDC windowDc, int width, int height);
-bool initialize_frame_context(FrameContext& context, HWND window);
-void cleanup_frame_context(FrameContext& context);
 
 BITMAPINFO create_bitmap_info(int screenWidth, int screenHeight, int bitsPerPixel);
 

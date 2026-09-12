@@ -124,10 +124,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="715clipper.cpp" />
+    <ClCompile Include="bmp.cpp" />
+    <ClCompile Include="capture.cpp" />
+    <ClCompile Include="hotkeys.cpp" />
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="utilities.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="715clipper.h" />
+    <ClInclude Include="modest_clipper.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
