@@ -1,5 +1,7 @@
 #include <Windows.h>
 #include <iostream>
+#include <d3d11.h>
+#include <dxgi1_2.h>
 #include "modest_clipper.h"
 
 using namespace std;

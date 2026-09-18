@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "modest_clipper.h"
+
 using namespace std;
 
 atomic<bool> captureInProgress{ false };
