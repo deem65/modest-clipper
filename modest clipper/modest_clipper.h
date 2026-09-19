@@ -3,6 +3,10 @@
 #include <Windows.h>
 #include <vector>
 #include <optional>
+#include <array>
+#include <d3d11.h>
+#include <dxgi1_2.h>
+#include <wrl/client.h>
 
 struct Frame {
     BITMAPINFOHEADER bitmapHeader{};
@@ -49,6 +53,16 @@ BITMAPINFO create_bitmap_info(int screenWidth, int screenHeight, int bitsPerPixe
 std::optional<Frame> capture_frame(FrameContext& context, int bits);
 
 std::optional<Frame> extract_frame_from_bitmap(HDC screenDc, HBITMAP screenBitmap, int screenWidth, int screenHeight, int bitsPerPixel);
+
+struct dcfg {
+    IDXGIAdapter* adapter = nullptr;
+    D3D_DRIVER_TYPE driverType = D3D_DRIVER_TYPE_HARDWARE;
+    HMODULE software = nullptr;
+    UINT flags = 0;
+    std::array<D3D_FEATURE_LEVEL, 1> featureLvls{D3D_FEATURE_LEVEL_11_0};
+    UINT sdk = D3D11_SDK_VERSION;
+    D3D_FEATURE_LEVEL selectedFeatureLvl{};
+};
 
 
 
