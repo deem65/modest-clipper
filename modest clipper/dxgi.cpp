@@ -11,7 +11,7 @@ using namespace std;
 
 bool init_dxgi()
 {
-    ComPtr<ID3D11Device> d;
+    ComPtr<ID3D11Device> device;
     ComPtr<ID3D11DeviceContext> dctx;
 
     dcfg config{};
@@ -24,7 +24,7 @@ bool init_dxgi()
         config.featureLvls.data(),
         static_cast<UINT>(config.featureLvls.size()),
         config.sdk, 
-        d.GetAddressOf(),           //output >> where to write device
+        device.GetAddressOf(),      //output >> where to write device
         &config.selectedFeatureLvl, //output >> which version of d3d feature level was selected out of config.featureLvls
         dctx.GetAddressOf());       //output >> where to write device context
 
@@ -35,5 +35,13 @@ bool init_dxgi()
     }
 
     cout << "D3D11 device creation succeeded\n";
+
+    ComPtr<IDXGIDevice> dxgiDevice;
+    device.As(&dxgiDevice); //does the com object device refer to implement dxgiDevice's 
+                            //template type (known at compile time)? if it does, As() 
+                            //asks for the object behind, device for IDXGIDevice, gets 
+                            //back a ptr to that IDXGIDevice interface, and stores that
+                            //ptr in dxgiDevice.
+
     return true;
 }
