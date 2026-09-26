@@ -7,6 +7,11 @@
 #include <d3d11.h>
 #include <dxgi1_2.h>
 #include <wrl/client.h>
+#include <string_view>
+
+#pragma comment(lib, "d3d11.lib")
+#pragma comment(lib, "dxgi.lib")
+
 
 struct Frame {
     BITMAPINFOHEADER bitmapHeader{};
@@ -47,6 +52,7 @@ bool get_window_dc(HDC& windowDc, HWND window);
 bool get_memory_dc(HDC& memoryDc, HDC screenDc);
 bool get_window_dimensions(HWND window, int& width, int& height);
 bool get_window_bitmap(HBITMAP& windowBitmap, HDC windowDc, int width, int height);
+bool check_hr(HRESULT hr, std::string_view m);
 
 BITMAPINFO create_bitmap_info(int screenWidth, int screenHeight, int bitsPerPixel);
 
@@ -62,6 +68,30 @@ struct dcfg {
     std::array<D3D_FEATURE_LEVEL, 1> featureLvls{D3D_FEATURE_LEVEL_11_0};
     UINT sdk = D3D11_SDK_VERSION;
     D3D_FEATURE_LEVEL selectedFeatureLvl{};
+};
+class Dxgi
+{
+public:
+    bool init();
+    bool get_frame(UINT timeoutMs = 100);
+    void release_frame();
+
+private:
+    Microsoft::WRL::ComPtr<ID3D11Device> device;
+    Microsoft::WRL::ComPtr<ID3D11DeviceContext> dctx;
+
+    Microsoft::WRL::ComPtr<IDXGIDevice> dxgiDevice;
+    Microsoft::WRL::ComPtr<IDXGIAdapter> adapter;
+    Microsoft::WRL::ComPtr<IDXGIOutput> output;
+    Microsoft::WRL::ComPtr<IDXGIOutput1> output1;
+    Microsoft::WRL::ComPtr<IDXGIOutputDuplication> duplication;
+
+    Microsoft::WRL::ComPtr<IDXGIResource> frameResource;
+    Microsoft::WRL::ComPtr<ID3D11Texture2D> frameTexture;
+
+    DXGI_OUTDUPL_FRAME_INFO frameInfo{};
+
+    bool frameAcquired{ false };
 };
 
 
