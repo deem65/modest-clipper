@@ -1,8 +1,7 @@
 #include "modest_clipper.h"
 
 #include <iostream>
-#include <iterator>
-#include <string_view>
+
 #pragma comment(lib, "d3d11.lib")
 #pragma comment(lib, "dxgi.lib")
 
@@ -56,16 +55,47 @@ bool Dxgi::init()
     */
 
     return
-        (
-        check_hr(device.As(&dxgiDevice), "failed to get idxgi interface") &&
-        check_hr(dxgiDevice->GetAdapter(adapter.GetAddressOf()), "failed to get idxgi adapter") &&
-        check_hr(adapter->EnumOutputs(0, output.GetAddressOf()), "failed to get idxgi output") &&
-        check_hr(output.As(&output1), "failed to get idxgi output1") &&
-        check_hr(output1->DuplicateOutput(device.Get(), duplication.GetAddressOf()), "failed to create desktop duplication")
-        );
-        
+            (
+            check_hr(device.As(&dxgiDevice), "failed to get idxgi interface") &&
+            check_hr(dxgiDevice->GetAdapter(adapter.GetAddressOf()), "failed to get idxgi adapter") &&
+            check_hr(adapter->EnumOutputs(0, output.GetAddressOf()), "failed to get idxgi output") &&
+            check_hr(output.As(&output1), "failed to get idxgi output1") &&
+            check_hr(output1->DuplicateOutput(device.Get(), duplication.GetAddressOf()), "failed to create desktop duplication")
+            );
 }
+bool Dxgi::try_get_frame(DxgiFrame& frame, UINT timeoutMs)
+{
+    frame.end();
+    ComPtr<IDXGIResource> resource;
+    if (!acquire_frame(frame, resource, timeoutMs))
+        return false;
+    if (!get_frame_texture(frame, resource))
+    {
+        frame.end();
+        return false;
+    }
+    return true;
+}
+bool Dxgi::acquire_frame(DxgiFrame& frame, ComPtr<IDXGIResource>& resource, UINT timeoutMs)
+{
+    DXGI_OUTDUPL_FRAME_INFO info{};
+    HRESULT hrFrame = duplication->AcquireNextFrame(timeoutMs, &info, resource.GetAddressOf());
+    if (hrFrame == DXGI_ERROR_WAIT_TIMEOUT)
+        return false;
+    if (!check_hr(hrFrame, "failed to acquire frame"))
+        return false;
+    frame.info = info;
+    frame.duplication = duplication;
 
+    return true;
+}
+bool Dxgi::get_frame_texture(DxgiFrame& frame, ComPtr<IDXGIResource>& resource)
+{
+    return check_hr(
+        resource.As(&frame.texture),
+        "failed to get frame texture"
+    );
+}
 bool check_hr(HRESULT hr, std::string_view m)
 {
     if (SUCCEEDED(hr))

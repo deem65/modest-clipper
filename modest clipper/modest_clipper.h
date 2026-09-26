@@ -8,9 +8,7 @@
 #include <dxgi1_2.h>
 #include <wrl/client.h>
 #include <string_view>
-
-#pragma comment(lib, "d3d11.lib")
-#pragma comment(lib, "dxgi.lib")
+#include <utility>
 
 
 struct Frame {
@@ -65,18 +63,89 @@ struct dcfg {
     D3D_DRIVER_TYPE driverType = D3D_DRIVER_TYPE_HARDWARE;
     HMODULE software = nullptr;
     UINT flags = 0;
-    std::array<D3D_FEATURE_LEVEL, 1> featureLvls{D3D_FEATURE_LEVEL_11_0};
+    std::array<D3D_FEATURE_LEVEL, 1> featureLvls{ D3D_FEATURE_LEVEL_11_0 };
     UINT sdk = D3D11_SDK_VERSION;
     D3D_FEATURE_LEVEL selectedFeatureLvl{};
 };
+
+struct DxgiFrame
+{
+    DXGI_OUTDUPL_FRAME_INFO info{};
+
+    Microsoft::WRL::ComPtr<ID3D11Texture2D> texture;
+    Microsoft::WRL::ComPtr<IDXGIOutputDuplication> duplication;
+
+    DxgiFrame() = default;
+
+    DxgiFrame(const DxgiFrame&) = delete;
+    DxgiFrame& operator=(const DxgiFrame&) = delete;
+
+    //std::move constructor
+    DxgiFrame(DxgiFrame&& other) noexcept
+        : info(other.info),
+        texture(std::move(other.texture)),
+        duplication(std::move(other.duplication))
+    {
+        other.info = {};
+    }
+
+    //std::move assignment
+    DxgiFrame& operator=(DxgiFrame&& other) noexcept
+    {
+        if (this == &other)
+            return *this;
+
+        release();
+
+        info = other.info;
+        texture = std::move(other.texture);
+        duplication = std::move(other.duplication);
+
+        other.info = {};
+
+        return *this;
+    }
+
+    void end() noexcept
+    {
+        release();
+        info = {};
+    }
+
+    ~DxgiFrame()
+    {
+        release();
+    }
+
+private:
+    void release() noexcept
+    {
+        texture.Reset();
+        if (duplication.Get() != nullptr) {
+            duplication->ReleaseFrame();
+            duplication.Reset();
+        }
+    }
+};
+
 class Dxgi
 {
 public:
     bool init();
-    bool get_frame(UINT timeoutMs = 100);
-    void release_frame();
+    bool try_get_frame(DxgiFrame& frame, UINT timeoutMs = 100);
 
 private:
+    bool acquire_frame(
+        DxgiFrame& frame,
+        Microsoft::WRL::ComPtr<IDXGIResource>& resource,
+        UINT timeoutMs
+    );
+
+    bool get_frame_texture(
+        DxgiFrame& frame,
+        Microsoft::WRL::ComPtr<IDXGIResource>& resource
+    );
+
     Microsoft::WRL::ComPtr<ID3D11Device> device;
     Microsoft::WRL::ComPtr<ID3D11DeviceContext> dctx;
 
@@ -85,14 +154,4 @@ private:
     Microsoft::WRL::ComPtr<IDXGIOutput> output;
     Microsoft::WRL::ComPtr<IDXGIOutput1> output1;
     Microsoft::WRL::ComPtr<IDXGIOutputDuplication> duplication;
-
-    Microsoft::WRL::ComPtr<IDXGIResource> frameResource;
-    Microsoft::WRL::ComPtr<ID3D11Texture2D> frameTexture;
-
-    DXGI_OUTDUPL_FRAME_INFO frameInfo{};
-
-    bool frameAcquired{ false };
 };
-
-
-
