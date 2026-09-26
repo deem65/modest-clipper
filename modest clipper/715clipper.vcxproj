@@ -126,6 +126,7 @@
   <ItemGroup>
     <ClCompile Include="bmp.cpp" />
     <ClCompile Include="capture.cpp" />
+    <ClCompile Include="dxgi.cpp" />
     <ClCompile Include="hotkeys.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="utilities.cpp" />

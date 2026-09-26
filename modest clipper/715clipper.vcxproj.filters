@@ -30,6 +30,9 @@
     <ClCompile Include="bmp.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="dxgi.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="modest_clipper.h">

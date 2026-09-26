@@ -16,7 +16,7 @@ bool init_dxgi()
 
     dcfg config{};
 
-    HRESULT hr = D3D11CreateDevice(
+    HRESULT hrCreation = D3D11CreateDevice(
         config.adapter,
         config.driverType,
         config.software,
@@ -28,7 +28,7 @@ bool init_dxgi()
         &config.selectedFeatureLvl, //output >> which version of d3d feature level was selected out of config.featureLvls
         dctx.GetAddressOf());       //output >> where to write device context
 
-    if (FAILED(hr))
+    if (FAILED(hrCreation))
     {
         cerr << "D3D11 device creation failed\n";
         return false;
@@ -37,11 +37,37 @@ bool init_dxgi()
     cout << "D3D11 device creation succeeded\n";
 
     ComPtr<IDXGIDevice> dxgiDevice;
-    device.As(&dxgiDevice); //does the com object device refer to implement dxgiDevice's 
-                            //template type (known at compile time)? if it does, As() 
-                            //asks for the object behind, device for IDXGIDevice, gets 
-                            //back a ptr to that IDXGIDevice interface, and stores that
-                            //ptr in dxgiDevice.
+    HRESULT hrInterface = device.As(&dxgiDevice); 
+    // device is a ComPtr<ID3D11Device>, which internally stores an
+    // ID3D11Device* pointing to the COM object's ID3D11Device interface.
+    //
+    // because dxgiDevice is a ComPtr<IDXGIDevice>, As() knows at compile time
+    // that we are asking for the IDXGIDevice interface.
+    //
+    // As() uses device's internal ID3D11Device* to call QueryInterface()
+    // on that same COM object.
+    // 
+    // QueryInterface() is a COM function that lets you ask an existing COM object:
+    // “do you support this other interface? if yes, give me a pointer to it”
+    // 
+    // if the COM object supports IDXGIDevice, QueryInterface() does not create
+    // or find a different COM object. it gets the IDXGIDevice interface from
+    // the **exact same COM object** that device already refers to, returns an
+    // IDXGIDevice* to that interface, and As() stores that pointer in dxgiDevice.
+    // 
+    // device and dxgiDevice both give access to the **same underlying COM object**,
+    // but they access it through different COM interfaces.
+    //
+    // device internally holds an ID3D11Device*.
+    // dxgiDevice internally holds an IDXGIDevice*.
+    //
+    // Those pointers may have different addresses, but both were obtained from
+    // the same COM object and expose different sets of functions on that object.
+
+    if (FAILED(hrInterface)) {
+        cerr << "failed to get idxgi interface";
+        return false;
+    }
 
     return true;
 }
