@@ -3,8 +3,8 @@
 #include <d3d11.h>
 #include <dxgi1_2.h>
 #include "modest_clipper.h"
-
-using namespace std;
+#include <atomic>
+#include <thread>
 
 int run() {
     constexpr int clipId = 1;
@@ -14,15 +14,23 @@ int run() {
     if (!RegisterHotKey(window, clipId, MOD_CONTROL | MOD_SHIFT, VK_F7)) {
         return 1;
     }
-    cout << "running\n";
+    std::thread captureThread(capture_loop);
+
+    std::cout << "running\n";
+
+
 
     MSG message{};
 
     while (GetMessage(&message, nullptr, 0, 0) > 0) {
         if (message.message == WM_HOTKEY && message.wParam == clipId) {
-            loop();
+            capture_clip();
         }
     }
+
+    clip_running = false;
+    captureThread.join();
+
     UnregisterHotKey(nullptr, clipId);
 
     return 0;

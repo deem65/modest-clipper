@@ -127,6 +127,8 @@
     <ClCompile Include="bmp.cpp" />
     <ClCompile Include="capture.cpp" />
     <ClCompile Include="dxgi.cpp" />
+    <ClCompile Include="dxgi_capture.cpp" />
+    <ClCompile Include="encoder.cpp" />
     <ClCompile Include="hotkeys.cpp" />
     <ClCompile Include="loop.cpp" />
     <ClCompile Include="main.cpp" />

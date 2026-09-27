@@ -9,7 +9,39 @@
 #include <wrl/client.h>
 #include <string_view>
 #include <utility>
+#include <atomic>
+#include <mfidl.h>
+#include <mftransform.h>
 
+class Encoder
+{
+public:
+    Encoder() = default;
+    ~Encoder();
+
+    Encoder(const Encoder&) = delete;
+    Encoder& operator=(const Encoder&) = delete;
+    Encoder(Encoder&&) = delete;
+    Encoder& operator=(Encoder&&) = delete;
+
+    bool init();
+
+private:
+    void shutdown() noexcept;
+    bool init_com();
+    bool init_mf();
+    bool create_hardware_encoder();
+
+    Microsoft::WRL::ComPtr<IMFTransform> transform;
+    Microsoft::WRL::ComPtr<IMFActivate> activation;
+
+    bool comStarted{};
+    bool mfStarted{};
+};
+
+inline std::atomic<bool> clip_running{ true };
+
+void capture_clip();
 
 struct Frame {
     BITMAPINFOHEADER bitmapHeader{};
@@ -46,7 +78,7 @@ void save_bitmap(
     int frameNum
 );
 int run();
-void loop();
+void capture_loop();
 bool get_window_dc(HDC& windowDc, HWND window);
 bool get_memory_dc(HDC& memoryDc, HDC screenDc);
 bool get_window_dimensions(HWND window, int& width, int& height);
@@ -128,7 +160,7 @@ private:
         }
     }
 };
-bool inspect_frame(const DxgiFrame& frame);
+void inspect_frame(const DxgiFrame& frame);
 
 class Dxgi
 {
