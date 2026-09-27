@@ -20,7 +20,7 @@ int run() {
 
     while (GetMessage(&message, nullptr, 0, 0) > 0) {
         if (message.message == WM_HOTKEY && message.wParam == clipId) {
-            clip(window);
+            loop();
         }
     }
     UnregisterHotKey(nullptr, clipId);

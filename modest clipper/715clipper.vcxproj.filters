@@ -33,6 +33,9 @@
     <ClCompile Include="dxgi.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="loop.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="modest_clipper.h">

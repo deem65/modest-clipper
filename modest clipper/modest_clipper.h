@@ -46,6 +46,7 @@ void save_bitmap(
     int frameNum
 );
 int run();
+void loop();
 bool get_window_dc(HDC& windowDc, HWND window);
 bool get_memory_dc(HDC& memoryDc, HDC screenDc);
 bool get_window_dimensions(HWND window, int& width, int& height);
@@ -127,6 +128,7 @@ private:
         }
     }
 };
+bool inspect_frame(const DxgiFrame& frame);
 
 class Dxgi
 {
