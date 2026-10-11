@@ -12,7 +12,7 @@
 
 struct encoder_list {
 	IMFActivate** items{};
-	int count{};
+	UINT32 count{};
 
 	encoder_list() = default;
 	encoder_list(const encoder_list&) = delete;

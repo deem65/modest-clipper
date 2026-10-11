@@ -67,7 +67,7 @@ void capture_multi_frames(const HWND window)
     cout << "failed frames: " << frame_count - frames.size() << '\n';
 }
 
-optional<Frame> capture_frame(const FrameContext& ctx, const int bits)
+optional<Frame> capture_frame(FrameContext& ctx, const int bits)
 {
     const HGDIOBJ previous_selected_object = SelectObject(ctx.memoryDc, ctx.windowBitmap);
 

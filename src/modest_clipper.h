@@ -32,7 +32,6 @@ private:
     void shutdown() noexcept;
     bool init_com();
     bool init_mf();
-    HRESULT MFTEnumEx(GUID guid, int flags, std::nullptr_t null, MFT_REGISTER_TYPE_INFO* output_type, IMFActivate*** items, int* count);
     bool create_hardware_encoder();
     DWORD inputStreamId{};
     DWORD outputStreamId{};
