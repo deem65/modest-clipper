@@ -21,7 +21,7 @@
     <ClCompile Include="hotkeys.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="capture.cpp">
+    <ClCompile Include="gdi_capture.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="utilities.cpp">

@@ -10,30 +10,30 @@
 
 using namespace std;
 
-atomic<bool> captureInProgress{ false };
+namespace
+{
+    atomic<bool> capture_in_progress{ false };
+}  
 
 void clip(HWND window) {
-    bool prev = captureInProgress.exchange(true);
-
-    if (prev) {
+    if (const bool prev = capture_in_progress.exchange(true)) {
         return;
     }
     thread capture([window]() {
         capture_multi_frames(window);
-        captureInProgress.store(false);
+        capture_in_progress.store(false);
         });
     capture.detach();
 }
-void capture_multi_frames(HWND window)
+void capture_multi_frames(const HWND window)
 {
     constexpr int fps = 5;
     constexpr int duration = 2;//s
-    constexpr int frameCount = fps * duration;
-    constexpr int intervalNs = 1'000'000'000 / fps;
-    constexpr int bitsPerPixel = 32;
+    constexpr int frame_count = fps * duration;
+    constexpr int interval_ns = 1'000'000'000 / fps;
 
-    auto interval = chrono::nanoseconds(intervalNs);
-    auto nextTimePoint = chrono::steady_clock::now();
+    constexpr auto interval = chrono::nanoseconds(interval_ns);
+    auto next_time_point = chrono::steady_clock::now();
 
     FrameContext ctx{};
     if (!ctx.initialize(window)) {
@@ -41,52 +41,51 @@ void capture_multi_frames(HWND window)
         return;
     }
     vector<Frame> frames;
-    optional<Frame> frame;
-    frames.reserve(frameCount);
-    for (int i = 0; i < frameCount; i++) {
-        frame = capture_frame(ctx, bitsPerPixel);
+    frames.reserve(frame_count);
+    for (int i = 0; i < frame_count; i++) {
+        constexpr int bits_per_pixel = 32;
 
-        if (frame.has_value()) {
-            frames.push_back(move(frame.value()));
+        if (optional<Frame> frame = capture_frame(ctx, bits_per_pixel); frame.has_value()) {
+            frames.push_back(std::move(frame.value()));
         }
         else {
             cerr << "frame" << i << " failed :(";
             //continues anyway
         }
 
-        if (i < frameCount - 1) {
-            nextTimePoint += interval;
-            this_thread::sleep_until(nextTimePoint);
+        if (i < frame_count - 1) {
+            next_time_point += interval;
+            this_thread::sleep_until(next_time_point);
         }
     }
-    for (int i = 0; i < frames.size(); i++) {
-        save_bitmap(frames[i].bitmapHeader, frames[i].pixelBytes, i);
+    for (size_t i = 0; i < frames.size(); i++) {
+        save_bitmap(frames[i].bitmapHeader, frames[i].pixelBytes, static_cast<int>(i));
     }
 
-    cout << "requested frames: " << frameCount << '\n';
+    cout << "requested frames: " << frame_count << '\n';
     cout << "captured frames: " << frames.size() << '\n';
-    cout << "failed frames: " << frameCount - frames.size() << '\n';
+    cout << "failed frames: " << frame_count - frames.size() << '\n';
 }
 
-optional<Frame> capture_frame(FrameContext& ctx, int bits)
+optional<Frame> capture_frame(const FrameContext& ctx, const int bits)
 {
-    HGDIOBJ previousSelectedObject = SelectObject(ctx.memoryDc, ctx.windowBitmap);
+    const HGDIOBJ previous_selected_object = SelectObject(ctx.memoryDc, ctx.windowBitmap);
 
-    if (previousSelectedObject == nullptr) {
+    if (previous_selected_object == nullptr) {
         return nullopt;
     }
     if (!BitBlt(ctx.memoryDc, 0, 0, ctx.width, ctx.height, ctx.windowDc, 0, 0, SRCCOPY)) {
-        SelectObject(ctx.memoryDc, previousSelectedObject);
+        SelectObject(ctx.memoryDc, previous_selected_object);
         return nullopt;
     }
-    SelectObject(ctx.memoryDc, previousSelectedObject); //GetDIBits expects the bitmap to be unselected in a dc
+    SelectObject(ctx.memoryDc, previous_selected_object); //GetDIBits expects the bitmap to be unselected in a dc
 
     return extract_frame_from_bitmap(ctx.windowDc, ctx.windowBitmap, ctx.width, ctx.height, bits);
 
 }
-bool FrameContext::initialize(HWND targetWindow)
+bool FrameContext::initialize(const HWND target_window)
 {
-    window = targetWindow;
+    window = target_window;
 
     if (
         !get_window_dc(windowDc, window) ||

@@ -125,7 +125,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="bmp.cpp" />
-    <ClCompile Include="capture.cpp" />
+    <ClCompile Include="gdi_capture.cpp" />
     <ClCompile Include="dxgi.cpp" />
     <ClCompile Include="dxgi_capture.cpp" />
     <ClCompile Include="encoder.cpp" />

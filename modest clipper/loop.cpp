@@ -14,15 +14,15 @@ void inspect_frame(const DxgiFrame& frame) {
 void capture_loop()
 {
     Encoder encoder{};
-
     if (!encoder.init())
         return;
-
     Dxgi dxgi{};
-    DxgiFrame f{};
-
     if (!dxgi.init())
         return;
+    if (!encoder.set_device(dxgi.get_device()))
+        return;
+
+    DxgiFrame f{};
 
     while (clip_running) {
         if (!dxgi.try_get_frame(f, 100))

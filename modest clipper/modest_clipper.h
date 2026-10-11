@@ -25,15 +25,19 @@ public:
     Encoder& operator=(Encoder&&) = delete;
 
     bool init();
+    bool set_device(ID3D11Device* device);
+    bool configure(UINT width, UINT height, UINT fps, UINT bitrate);
 
 private:
     void shutdown() noexcept;
     bool init_com();
     bool init_mf();
     bool create_hardware_encoder();
-
+    DWORD inputStreamId{};
+    DWORD outputStreamId{};
     Microsoft::WRL::ComPtr<IMFTransform> transform;
     Microsoft::WRL::ComPtr<IMFActivate> activation;
+    Microsoft::WRL::ComPtr<IMFDXGIDeviceManager> deviceManager;
 
     bool comStarted{};
     bool mfStarted{};
@@ -62,7 +66,7 @@ public:
     int width{};
     int height{};
 
-    bool initialize(HWND targetWindow);
+    bool initialize(HWND target_window);
     void cleanup();
 
     ~FrameContext();
@@ -167,6 +171,11 @@ class Dxgi
 public:
     bool init();
     bool try_get_frame(DxgiFrame& frame, UINT timeoutMs = 100);
+
+    ID3D11Device* get_device() const noexcept
+    {
+        return device.Get();
+    }
 
 private:
     bool acquire_frame(
