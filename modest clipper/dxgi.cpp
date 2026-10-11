@@ -1,3 +1,4 @@
+// ReSharper disable All
 #include "modest_clipper.h"
 
 #include <iostream>

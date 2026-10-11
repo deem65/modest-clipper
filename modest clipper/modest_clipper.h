@@ -13,16 +13,16 @@
 #include <mfidl.h>
 #include <mftransform.h>
 
-class Encoder
+class encoder
 {
 public:
-    Encoder() = default;
-    ~Encoder();
+    encoder() = default;
+    ~encoder();
 
-    Encoder(const Encoder&) = delete;
-    Encoder& operator=(const Encoder&) = delete;
-    Encoder(Encoder&&) = delete;
-    Encoder& operator=(Encoder&&) = delete;
+    encoder(const encoder&) = delete;
+    encoder& operator=(const encoder&) = delete;
+    encoder(encoder&&) = delete;
+    encoder& operator=(encoder&&) = delete;
 
     bool init();
     bool set_device(ID3D11Device* device);
@@ -32,6 +32,7 @@ private:
     void shutdown() noexcept;
     bool init_com();
     bool init_mf();
+    HRESULT MFTEnumEx(GUID guid, int flags, std::nullptr_t null, MFT_REGISTER_TYPE_INFO* output_type, IMFActivate*** items, int* count);
     bool create_hardware_encoder();
     DWORD inputStreamId{};
     DWORD outputStreamId{};

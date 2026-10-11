@@ -12,14 +12,14 @@ using namespace std;
 
 namespace
 {
-    atomic<bool> capture_in_progress{ false };
+    atomic capture_in_progress{false};
 }  
 
 void clip(HWND window) {
     if (const bool prev = capture_in_progress.exchange(true)) {
         return;
     }
-    thread capture([window]() {
+    thread capture([window] {
         capture_multi_frames(window);
         capture_in_progress.store(false);
         });
@@ -28,7 +28,7 @@ void clip(HWND window) {
 void capture_multi_frames(const HWND window)
 {
     constexpr int fps = 5;
-    constexpr int duration = 2;//s
+    constexpr int duration = 2; // s
     constexpr int frame_count = fps * duration;
     constexpr int interval_ns = 1'000'000'000 / fps;
 
@@ -50,7 +50,7 @@ void capture_multi_frames(const HWND window)
         }
         else {
             cerr << "frame" << i << " failed :(";
-            //continues anyway
+            // continues anyway
         }
 
         if (i < frame_count - 1) {
@@ -78,7 +78,7 @@ optional<Frame> capture_frame(const FrameContext& ctx, const int bits)
         SelectObject(ctx.memoryDc, previous_selected_object);
         return nullopt;
     }
-    SelectObject(ctx.memoryDc, previous_selected_object); //GetDIBits expects the bitmap to be unselected in a dc
+    SelectObject(ctx.memoryDc, previous_selected_object); // GetDIBits expects the bitmap to be unselected in a dc
 
     return extract_frame_from_bitmap(ctx.windowDc, ctx.windowBitmap, ctx.width, ctx.height, bits);
 

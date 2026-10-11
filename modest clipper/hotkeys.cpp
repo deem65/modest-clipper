@@ -9,29 +9,20 @@
 int run() {
     constexpr int clipId = 1;
 
-    HWND window = nullptr; //temp
-
-    if (!RegisterHotKey(window, clipId, MOD_CONTROL | MOD_SHIFT, VK_F7)) {
+    if (constexpr HWND window = nullptr; !RegisterHotKey(window, clipId, MOD_CONTROL | MOD_SHIFT, VK_F7)) {
         return 1;
     }
     std::thread captureThread(capture_loop);
-
     std::cout << "running\n";
-
-
-
     MSG message{};
-
     while (GetMessage(&message, nullptr, 0, 0) > 0) {
         if (message.message == WM_HOTKEY && message.wParam == clipId) {
             capture_clip();
         }
     }
-
     clip_running = false;
     captureThread.join();
-
     UnregisterHotKey(nullptr, clipId);
-
+    
     return 0;
 }

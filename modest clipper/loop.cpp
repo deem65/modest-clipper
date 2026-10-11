@@ -13,7 +13,7 @@ void inspect_frame(const DxgiFrame& frame) {
 }
 void capture_loop()
 {
-    Encoder encoder{};
+    encoder encoder{};
     if (!encoder.init())
         return;
     Dxgi dxgi{};

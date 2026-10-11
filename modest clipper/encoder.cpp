@@ -10,29 +10,30 @@
 #pragma comment(lib, "mfuuid.lib")
 #pragma comment(lib, "ole32.lib")
 
-struct EncoderList {
+struct encoder_list {
 	IMFActivate** items{};
 	int count{};
 
-	EncoderList() = default;
-	EncoderList(const EncoderList&) = delete;
-	EncoderList& operator=(const EncoderList&) = delete;
-
-	~EncoderList()
+	encoder_list() = default;
+	encoder_list(const encoder_list&) = delete;
+	encoder_list& operator=(const encoder_list&) = delete;
+  
+	~encoder_list()
 	{
 		for (int i = 0; i < count; ++i)
 			items[i]->Release();
 
-		CoTaskMemFree(items);
+		CoTaskMemFree(items);  
 	}
 };
-bool report_failure(const char* operation, HRESULT hr) {
+
+static bool report_failure(const char* operation, const HRESULT hr) {
 	std::cerr << operation << " failed: 0x"
 		<< std::hex << static_cast<unsigned long>(hr)
-		<< std::dec << std::endl;
+		<< std::dec << '\n';
 	return false;
 }
-bool Encoder::init() {
+bool encoder::init() {
 	shutdown();
 
 	if (!init_com() ||
@@ -46,24 +47,22 @@ bool Encoder::init() {
 	std::cout << "h.264 activated\n";
 	return true;
 }
-bool Encoder::init_com() {
-	HRESULT hr = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
-	if (FAILED(hr))
+bool encoder::init_com() {
+	if (const HRESULT hr = CoInitializeEx(nullptr, COINIT_MULTITHREADED); FAILED(hr))
 		return report_failure("init com", hr);
 
 	comStarted = true;
 	return true;
 }
-bool Encoder::init_mf() {
-	HRESULT hr = MFStartup(MF_VERSION);
-	if (FAILED(hr))
+bool encoder::init_mf() {
+	if (const HRESULT hr = MFStartup(MF_VERSION); FAILED(hr))
 		return report_failure("init mf", hr);
 
 	mfStarted = true;
 	return true;
 }
-bool Encoder::create_hardware_encoder() {
-	EncoderList availableEncoders;
+bool encoder::create_hardware_encoder() {
+	encoder_list availableEncoders;
 	MFT_REGISTER_TYPE_INFO outputType{
 		MFMediaType_Video,
 		MFVideoFormat_H264
@@ -105,7 +104,7 @@ bool Encoder::create_hardware_encoder() {
 
 	return false;
 }
-bool Encoder::set_device(ID3D11Device* device)
+bool encoder::set_device(ID3D11Device* device)
 {
 	if (!device || !transform)
 		return report_failure("set_device: missing device or encoder", E_POINTER);
@@ -120,12 +119,12 @@ bool Encoder::set_device(ID3D11Device* device)
 	if (FAILED(hr))
 		return report_failure("unlock asynchronous encoder", hr);
 
-	UINT32 d3d11Aware{};
-	hr = attributes->GetUINT32(MF_SA_D3D11_AWARE, &d3d11Aware);
+	UINT32 d3d11_aware{};
+	hr = attributes->GetUINT32(MF_SA_D3D11_AWARE, &d3d11_aware);
 	if (FAILED(hr))
 		return report_failure("query D3D11 support", hr);
 
-	if (!d3d11Aware) {
+	if (!d3d11_aware) {
 		std::cerr << "selected encoder does not support D3D11 resources.\n";
 		return false;
 	}
@@ -141,16 +140,16 @@ bool Encoder::set_device(ID3D11Device* device)
 	multithread->SetMultithreadProtected(TRUE);
 
 	Microsoft::WRL::ComPtr<IMFDXGIDeviceManager> manager;
-	UINT resetToken{};
+	UINT reset_token{};
 
 	hr = MFCreateDXGIDeviceManager(
-		&resetToken,
+		&reset_token,
 		manager.GetAddressOf()
 	);
 	if (FAILED(hr))
 		return report_failure("create device manager", hr);
 
-	hr = manager->ResetDevice(device, resetToken);
+	hr = manager->ResetDevice(device, reset_token);
 	if (FAILED(hr))
 		return report_failure("associate D3D11 device", hr);
 
@@ -166,7 +165,8 @@ bool Encoder::set_device(ID3D11Device* device)
 	std::cout << "encoder accepted the d3d11 device manager.\n";
 	return true;
 }
-HRESULT set_video_format( IMFMediaType* type, const GUID& subtype, UINT width, UINT height, UINT fps)
+
+static HRESULT set_video_format( IMFMediaType* type, const GUID& subtype, UINT width, UINT height, UINT fps)
 {
 	HRESULT hr = type->SetGUID(MF_MT_MAJOR_TYPE, MFMediaType_Video);
 	if (FAILED(hr))
@@ -193,7 +193,7 @@ HRESULT set_video_format( IMFMediaType* type, const GUID& subtype, UINT width, U
 		MFVideoInterlace_Progressive
 	);
 }
-bool Encoder::configure(UINT width, UINT height, UINT fps, UINT bitrate)
+bool encoder::configure(UINT width, UINT height, UINT fps, UINT bitrate)
 {
 	if (!transform || !deviceManager)
 		return report_failure("configure: encoder/device not ready", E_UNEXPECTED);
@@ -204,14 +204,14 @@ bool Encoder::configure(UINT width, UINT height, UINT fps, UINT bitrate)
 		return report_failure("configure: invalid video settings", E_INVALIDARG);
 	}
 
-	DWORD inputCount{};
-	DWORD outputCount{};
+	DWORD input_count{};
+	DWORD output_count{};
 
-	HRESULT hr = transform->GetStreamCount(&inputCount, &outputCount);
+	HRESULT hr = transform->GetStreamCount(&input_count, &output_count);
 	if (FAILED(hr))
 		return report_failure("GetStreamCount", hr);
 
-	if (inputCount != 1 || outputCount != 1)
+	if (input_count != 1 || output_count != 1)
 		return report_failure("expected one input and one output", E_UNEXPECTED);
 
 	hr = transform->GetStreamIDs(
@@ -227,46 +227,46 @@ bool Encoder::configure(UINT width, UINT height, UINT fps, UINT bitrate)
 		return report_failure("GetStreamIDs", hr);
 	}
 
-	Microsoft::WRL::ComPtr<IMFMediaType> outputType;
+	Microsoft::WRL::ComPtr<IMFMediaType> output_type;
 
-	hr = MFCreateMediaType(outputType.GetAddressOf());
+	hr = MFCreateMediaType(output_type.GetAddressOf());
 	if (FAILED(hr))
 		return report_failure("create output type", hr);
 
 	hr = set_video_format(
-		outputType.Get(), MFVideoFormat_H264, width, height, fps
+		output_type.Get(), MFVideoFormat_H264, width, height, fps
 	);
 	if (FAILED(hr))
 		return report_failure("set output attributes", hr);
 
-	hr = outputType->SetUINT32(MF_MT_AVG_BITRATE, bitrate);
+	hr = output_type->SetUINT32(MF_MT_AVG_BITRATE, bitrate);
 	if (FAILED(hr))
 		return report_failure("set bitrate", hr);
 
-	hr = outputType->SetUINT32(
+	hr = output_type->SetUINT32(
 		MF_MT_MPEG2_PROFILE,
 		eAVEncH264VProfile_Main
 	);
 	if (FAILED(hr))
 		return report_failure("set H.264 profile", hr);
 
-	hr = transform->SetOutputType(outputStreamId, outputType.Get(), 0);
+	hr = transform->SetOutputType(outputStreamId, output_type.Get(), 0);
 	if (FAILED(hr))
 		return report_failure("SetOutputType H.264", hr);
 
-	Microsoft::WRL::ComPtr<IMFMediaType> inputType;
+	Microsoft::WRL::ComPtr<IMFMediaType> input_type;
 
-	hr = MFCreateMediaType(inputType.GetAddressOf());
+	hr = MFCreateMediaType(input_type.GetAddressOf());
 	if (FAILED(hr))
 		return report_failure("create input type", hr);
 
 	hr = set_video_format(
-		inputType.Get(), MFVideoFormat_NV12, width, height, fps
+		input_type.Get(), MFVideoFormat_NV12, width, height, fps
 	);
 	if (FAILED(hr))
 		return report_failure("set input attributes", hr);
 
-	hr = transform->SetInputType(inputStreamId, inputType.Get(), 0);
+	hr = transform->SetInputType(inputStreamId, input_type.Get(), 0);
 	if (FAILED(hr))
 		return report_failure("SetInputType NV12", hr);
 
@@ -277,7 +277,7 @@ bool Encoder::configure(UINT width, UINT height, UINT fps, UINT bitrate)
 
 	return true;
 }
-void Encoder::shutdown() noexcept {
+void encoder::shutdown() noexcept {
 	if (activation)
 		activation->ShutdownObject();
 
@@ -295,4 +295,4 @@ void Encoder::shutdown() noexcept {
 		comStarted = false;
 	}
 }
-Encoder::~Encoder() { shutdown(); }
+encoder::~encoder() { shutdown(); }
