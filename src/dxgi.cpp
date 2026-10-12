@@ -9,7 +9,7 @@
 using Microsoft::WRL::ComPtr;
 using namespace std;
 
-bool Dxgi::init()
+bool dxgi::init()
 {
     dcfg config{};
 
@@ -64,7 +64,7 @@ bool Dxgi::init()
             check_hr(output1->DuplicateOutput(device.Get(), duplication.GetAddressOf()), "failed to create desktop duplication")
             );
 }
-bool Dxgi::try_get_frame(DxgiFrame& frame, UINT timeoutMs)
+bool dxgi::try_get_frame(dxgi_frame& frame, UINT timeoutMs)
 {
     frame.end();
     ComPtr<IDXGIResource> resource;
@@ -77,7 +77,7 @@ bool Dxgi::try_get_frame(DxgiFrame& frame, UINT timeoutMs)
     }
     return true;
 }
-bool Dxgi::acquire_frame(DxgiFrame& frame, ComPtr<IDXGIResource>& resource, UINT timeoutMs)
+bool dxgi::acquire_frame(dxgi_frame& frame, ComPtr<IDXGIResource>& resource, UINT timeoutMs)
 {
     DXGI_OUTDUPL_FRAME_INFO info{};
     HRESULT hrFrame = duplication->AcquireNextFrame(timeoutMs, &info, resource.GetAddressOf());
@@ -90,7 +90,7 @@ bool Dxgi::acquire_frame(DxgiFrame& frame, ComPtr<IDXGIResource>& resource, UINT
 
     return true;
 }
-bool Dxgi::get_frame_texture(DxgiFrame& frame, ComPtr<IDXGIResource>& resource)
+bool dxgi::get_frame_texture(dxgi_frame& frame, ComPtr<IDXGIResource>& resource)
 {
     return check_hr(
         resource.As(&frame.texture),

@@ -1,7 +1,7 @@
 #include "modest_clipper.h"
 #include <iostream>
 
-void inspect_frame(const DxgiFrame& frame) {
+void inspect_frame(const dxgi_frame& frame) {
 	D3D11_TEXTURE2D_DESC desc{};
 	frame.texture->GetDesc(&desc);
 
@@ -16,13 +16,13 @@ void capture_loop()
     encoder encoder{};
     if (!encoder.init())
         return;
-    Dxgi dxgi{};
+    dxgi dxgi{};
     if (!dxgi.init())
         return;
     if (!encoder.set_device(dxgi.get_device()))
         return;
 
-    DxgiFrame f{};
+    dxgi_frame f{};
 
     while (clip_running) {
         if (!dxgi.try_get_frame(f, 100))

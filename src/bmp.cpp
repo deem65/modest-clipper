@@ -50,10 +50,10 @@ BITMAPINFO create_bitmap_info(int screenWidth, int screenHeight, int bitsPerPixe
     bitmapInfo.bmiHeader.biCompression = BI_RGB;
     return bitmapInfo;
 }
-optional<Frame> extract_frame_from_bitmap(HDC screenDc, HBITMAP screenBitmap, int screenWidth, int screenHeight, int bitsPerPixel)
+optional<frame> extract_frame_from_bitmap(HDC screenDc, HBITMAP screenBitmap, int screenWidth, int screenHeight, int bitsPerPixel)
 {
     BITMAPINFO bitmapInfo = create_bitmap_info(screenWidth, screenHeight, bitsPerPixel);
-    Frame frame{};
+    frame frame{};
     frame.bitmapHeader = bitmapInfo.bmiHeader;
     frame.pixelBytes.resize(screenWidth * screenHeight * bitsPerPixel / CHAR_BIT);
     int copiedScanLines = GetDIBits(screenDc, screenBitmap, 0, screenHeight, frame.pixelBytes.data(), &bitmapInfo, DIB_RGB_COLORS);

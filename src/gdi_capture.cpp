@@ -35,17 +35,17 @@ void capture_multi_frames(const HWND window)
     constexpr auto interval = chrono::nanoseconds(interval_ns);
     auto next_time_point = chrono::steady_clock::now();
 
-    FrameContext ctx{};
+    frame_context ctx{};
     if (!ctx.initialize(window)) {
         cerr << "frame context initialization: fail\n";
         return;
     }
-    vector<Frame> frames;
+    vector<frame> frames;
     frames.reserve(frame_count);
     for (int i = 0; i < frame_count; i++) {
         constexpr int bits_per_pixel = 32;
 
-        if (optional<Frame> frame = capture_frame(ctx, bits_per_pixel); frame.has_value()) {
+        if (optional<frame> frame = capture_frame(ctx, bits_per_pixel); frame.has_value()) {
             frames.push_back(std::move(frame.value()));
         }
         else {
@@ -67,7 +67,7 @@ void capture_multi_frames(const HWND window)
     cout << "failed frames: " << frame_count - frames.size() << '\n';
 }
 
-optional<Frame> capture_frame(FrameContext& ctx, const int bits)
+optional<frame> capture_frame(frame_context& ctx, const int bits)
 {
     const HGDIOBJ previous_selected_object = SelectObject(ctx.memoryDc, ctx.windowBitmap);
 
@@ -83,7 +83,7 @@ optional<Frame> capture_frame(FrameContext& ctx, const int bits)
     return extract_frame_from_bitmap(ctx.windowDc, ctx.windowBitmap, ctx.width, ctx.height, bits);
 
 }
-bool FrameContext::initialize(const HWND target_window)
+bool frame_context::initialize(const HWND target_window)
 {
     window = target_window;
 
@@ -100,7 +100,7 @@ bool FrameContext::initialize(const HWND target_window)
 
     return true;
 }
-void FrameContext::cleanup()
+void frame_context::cleanup()
 {
     if (windowBitmap != nullptr) {
         DeleteObject(windowBitmap);
@@ -116,7 +116,7 @@ void FrameContext::cleanup()
     }
 }
 
-FrameContext::~FrameContext()
+frame_context::~frame_context()
 {
     cleanup();
 }

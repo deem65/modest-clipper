@@ -18,7 +18,7 @@ struct encoder_list {
 	encoder_list(const encoder_list&) = delete;
 	encoder_list& operator=(const encoder_list&) = delete;
   
-	~encoder_list()
+	~encoder_list() 
 	{
 		for (int i = 0; i < count; ++i)
 			items[i]->Release();
